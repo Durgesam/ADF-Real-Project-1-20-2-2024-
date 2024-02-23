@@ -12,13 +12,24 @@
 					"name": "source1"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "R_C",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "filter1"
 				},
 				{
 					"name": "aggregate1"
+				},
+				{
+					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
@@ -40,7 +51,7 @@
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> source1",
 				"source1 filter(left(TransactionDate,21) != \"Total Sales Quantity:\") ~> filter1",
-				"filter1 aggregate(groupBy(OnlineRetailer,",
+				"derivedColumn1 aggregate(groupBy(OnlineRetailer,",
 				"          SalesMonth,",
 				"          TransactionDate,",
 				"          SalesRegion,",
@@ -49,7 +60,16 @@
 				"          Vintage,",
 				"          Variety,",
 				"          Score),",
-				"     Quantity = sum(toInteger(Quantity))) ~> aggregate1"
+				"     Quantity = sum(toInteger(Quantity))) ~> aggregate1",
+				"filter1 derive(FileName = concat(OnlineRetailer,'_',substring(SalesMonth,1, 4),'_',substring(SalesMonth,6,2))) ~> derivedColumn1",
+				"aggregate1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     rowUrlColumn:'SalesMonth',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink1"
 			]
 		}
 	}
